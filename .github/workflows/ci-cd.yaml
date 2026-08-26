@@ -37,14 +37,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
+      - name: Create a local Kubernetes cluster (kind)
+        uses: helm/kind-action@v1.10.0
 
-      - name: Configure kubeconfig
-        run: echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > kubeconfig.yaml
-
-      - name: Deploy to Kubernetes
+      - name: Deploy to the cluster
         run: |
-          export KUBECONFIG=kubeconfig.yaml
+          kubectl apply -f k8s/
           kubectl set image deployment/auth-service auth-service=${{ secrets.DOCKERHUB_USERNAME }}/auth-service:${{ github.sha }}
           kubectl set image deployment/data-service data-service=${{ secrets.DOCKERHUB_USERNAME }}/data-service:${{ github.sha }}
+          kubectl rollout status deployment/auth-service --timeout=90s
+          kubectl rollout status deployment/data-service --timeout=90s
+          kubectl get pods -o wide
