@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  auth-service:
+    build: ./auth-service
+    image: auth-service:v1
+    ports:
+      - "5000:5000"
+
+  data-service:
+    build: ./data-service
+    image: data-service:v1
+    ports:
+      - "5001:5001"
+    environment:
+      - AUTH_SERVICE_URL=http://auth-service:5000
+    depends_on:
+      - auth-service
